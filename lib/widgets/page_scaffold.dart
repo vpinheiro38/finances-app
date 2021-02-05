@@ -12,7 +12,7 @@ class PageScaffold extends StatelessWidget {
       backgroundColor: BackgroundColor,
       body: SafeArea(
         child: _child,
-      ),
+      )
     );
   }
 

@@ -1,16 +1,18 @@
+import 'package:finances_app/model/models/group.dart';
 import 'package:finances_app/style.dart';
-import 'package:finances_app/views/groups/groups.dart';
 import 'package:flutter/material.dart';
 
 class GroupCard extends StatelessWidget {
-  final Group _group;
+  final String _groupName;
+  final Function() _onTextFieldUnfocused;
+  final Function(String) _onNameChanged;
 
-  GroupCard(this._group);
+  GroupCard(this._groupName, this._onNameChanged, this._onTextFieldUnfocused);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
       child: Card(
         color: CardColor,
         child: Container(
@@ -18,11 +20,20 @@ class GroupCard extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text(_group.name, style: Theme.of(context).textTheme.bodyText1),
+                child: Focus(
+                  onFocusChange: (focused) {
+                    if (!focused)
+                      _onTextFieldUnfocused();
+                  },
+                  child: TextField(
+                    controller: TextEditingController(text: _groupName),
+                    onChanged: _onNameChanged,
+                    style: Theme.of(context).textTheme.bodyText1,
+                    decoration: InputDecoration(border: InputBorder.none),
+                  ),
+                )
               ),
-              Container(
-                  child: Icon(Icons.chevron_right, color: Colors.blueGrey)
-              )
+              Icon(Icons.chevron_right, color: Colors.blueGrey)
             ],
           )
         )
