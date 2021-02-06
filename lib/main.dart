@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'app.dart';
 
 void main() {
-  setupServiceLocator();
-  runApp(Application());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  setupServiceLocator().then((_) => runApp(Application()));
 }

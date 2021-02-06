@@ -1,10 +1,10 @@
 import 'package:finances_app/model/models/group.dart';
 import 'package:finances_app/presenters/groups/groups_contract.dart';
 import 'package:finances_app/presenters/groups/groups_presenter.dart';
-import 'package:finances_app/presenters/groups/groups_state_properties.dart';
 import 'package:finances_app/style.dart';
 import 'package:finances_app/types.dart';
 import 'package:finances_app/views/groups/group_card.dart';
+import 'package:finances_app/widgets/dialog_popup.dart';
 import 'package:finances_app/widgets/page_scaffold.dart';
 import 'package:flutter/material.dart';
 
@@ -19,17 +19,17 @@ class GroupsState extends State<Groups> implements GroupsView {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
   GroupsPresenter _presenter;
-  GroupsStateProperties _properties;
+
   GroupCallback _changedGroupNameCallback;
   VoidCallback _createGroupCallback;
+
+  List<Group> _groupList = [];
 
   @override
   void initState() {
     super.initState();
 
-    _properties = GroupsStateProperties();
     _presenter = GroupsPresenterImpl(this);
-
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _presenter.fetchAllGroups();
     });
@@ -54,13 +54,13 @@ class GroupsState extends State<Groups> implements GroupsView {
               Expanded(
                 child: AnimatedList(
                     key: _listKey,
-                    initialItemCount: _properties.groupList.length,
+                    initialItemCount: _groupList.length,
                     itemBuilder: (context, index, animation) {
                       return SlideTransition(
                         position: animation.drive(_slideOffset),
                         child: FadeTransition(
                           opacity: animation.drive(_slideFade),
-                          child: GroupCard(_properties.groupList[index].name, (newName) => _properties.groupList[index].name = newName, () => _changedGroupNameCallback(_properties.groupList[index])),
+                          child: GroupCard(_groupList[index].name, (newName) => _groupList[index].name = newName, () => _changedGroupNameCallback(_groupList[index])),
                         ),
                       );
                     }
@@ -73,8 +73,6 @@ class GroupsState extends State<Groups> implements GroupsView {
     );
   }
 
-  @override
-  set properties(GroupsStateProperties value) => _properties = value;
 
   @override
   set changedGroupNameCallback(callback) {
@@ -92,8 +90,8 @@ class GroupsState extends State<Groups> implements GroupsView {
     groupList.forEach((group) {
       delay = delay.then((_) {
         return Future.delayed(const Duration(milliseconds: 100), () {
-          _properties.groupList.add(group);
-          _listKey.currentState.insertItem(_properties.groupList.length - 1);
+          _groupList.add(group);
+          _listKey.currentState.insertItem(_groupList.length - 1);
         });
       });
     });
@@ -101,8 +99,17 @@ class GroupsState extends State<Groups> implements GroupsView {
 
   @override
   void addGroup(Group group) {
-    _properties.groupList.add(group);
-    _listKey.currentState.insertItem(_properties.groupList.length - 1);
+    _groupList.add(group);
+    _listKey.currentState.insertItem(_groupList.length - 1);
+  }
+
+  @override
+  void showInfoPopup(String message){
+    var dialog = DialogPopup.buildDialog(
+        message: message,
+        confirm: "OK",
+        confirmFn: () => Navigator.pop(context));
+    showDialog(context: context, child: dialog);
   }
 
 }

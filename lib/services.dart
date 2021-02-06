@@ -4,6 +4,11 @@ import 'package:get_it/get_it.dart';
 
 GetIt services = GetIt.instance;
 
-void setupServiceLocator() {
-  services.registerSingleton<AppDatabase>(SQFLite());
+Future setupServiceLocator() async {
+  SQFLite sqfLite = SQFLite();
+  sqfLite.db = await sqfLite.initDatabase();
+
+  services.registerSingleton<AppDatabase>(sqfLite);
+
+  return Future.value(1);
 }
