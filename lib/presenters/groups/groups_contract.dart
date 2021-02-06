@@ -3,6 +3,7 @@ import 'package:finances_app/types.dart';
 import 'package:flutter/material.dart';
 
 abstract class GroupsView {
+  void navigateToDashboard(Group group);
   void showInfoPopup(String message);
   void showGroups(List<Group> groupList);
   void addGroup(Group group);

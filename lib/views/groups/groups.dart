@@ -3,6 +3,7 @@ import 'package:finances_app/presenters/groups/groups_contract.dart';
 import 'package:finances_app/presenters/groups/groups_presenter.dart';
 import 'package:finances_app/style.dart';
 import 'package:finances_app/types.dart';
+import 'package:finances_app/views/dashboard/dashboard.dart';
 import 'package:finances_app/views/groups/group_card.dart';
 import 'package:finances_app/widgets/dialog_popup.dart';
 import 'package:finances_app/widgets/page_scaffold.dart';
@@ -38,38 +39,35 @@ class GroupsState extends State<Groups> implements GroupsView {
   @override
   Widget build(BuildContext context) {
     return PageScaffold(
-        Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      header: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+          child: Row(
             children: [
-              Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text("Finanças", style: Theme.of(context).textTheme.headline1)),
-                      IconButton(icon: Icon(Icons.add, color: TextColor), onPressed: _createGroupCallback)
-                    ],
-                  )
-              ),
-              Expanded(
-                child: AnimatedList(
-                    key: _listKey,
-                    initialItemCount: _groupList.length,
-                    itemBuilder: (context, index, animation) {
-                      return SlideTransition(
-                        position: animation.drive(_slideOffset),
-                        child: FadeTransition(
-                          opacity: animation.drive(_slideFade),
-                          child: GroupCard(_groupList[index].name, (newName) => _groupList[index].name = newName, () => _changedGroupNameCallback(_groupList[index])),
-                        ),
-                      );
-                    }
-                ),
-              )
+              Expanded(child: Text("Finanças", style: Theme.of(context).textTheme.headline1)),
+              IconButton(icon: Icon(Icons.add, color: TextColor), onPressed: _createGroupCallback)
             ],
-          ),
-        )
-
+          )
+      ),
+      child: Expanded(
+        child: AnimatedList(
+            key: _listKey,
+            initialItemCount: _groupList.length,
+            itemBuilder: (context, index, animation) {
+              return SlideTransition(
+                position: animation.drive(_slideOffset),
+                child: FadeTransition(
+                  opacity: animation.drive(_slideFade),
+                  child: GroupCard(
+                    _groupList[index].name,
+                    (newName) => _groupList[index].name = newName,
+                    () => _changedGroupNameCallback(_groupList[index]),
+                    () => navigateToDashboard(_groupList[index])
+                  ),
+                ),
+              );
+            }
+        ),
+      )
     );
   }
 
@@ -110,6 +108,11 @@ class GroupsState extends State<Groups> implements GroupsView {
         confirm: "OK",
         confirmFn: () => Navigator.pop(context));
     showDialog(context: context, child: dialog);
+  }
+
+  @override
+  void navigateToDashboard(Group group) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Dashboard(group)));
   }
 
 }
