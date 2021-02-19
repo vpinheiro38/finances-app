@@ -1,5 +1,5 @@
+import 'package:finances_app/constants/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:finances_app/style.dart';
 
 class PageScaffold extends StatelessWidget {
   final Widget child;
@@ -10,7 +10,7 @@ class PageScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BackgroundColor,
+      backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -21,5 +21,4 @@ class PageScaffold extends StatelessWidget {
       )
     );
   }
-
 }
