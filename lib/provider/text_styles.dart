@@ -13,8 +13,10 @@ class TextStyles {
   TextStyle _h2TextStyle;
   TextStyle _largeBodyTextStyle;
   TextStyle _bodyTextStyle;
+  TextStyle _boldBodyTextStyle;
   TextStyle _smallBodyTextStyle;
-  TextStyle _hintTextStyle;
+  TextStyle _boldGrayBodyTextStyle;
+  TextStyle _grayBodyTextStyle;
 
   TextStyles() {
     _h1TextStyle = TextStyle(
@@ -37,6 +39,13 @@ class TextStyles {
       color: AppColors.textColor,
     );
 
+    _boldBodyTextStyle = TextStyle(
+      fontFamily: _fontName,
+      fontWeight: FontWeight.bold,
+      fontSize: _bodyTextSize,
+      color: AppColors.textColor,
+    );
+
     _bodyTextStyle = TextStyle(
       fontFamily: _fontName,
       fontSize: _bodyTextSize,
@@ -49,7 +58,14 @@ class TextStyles {
       color: AppColors.hintTextColor,
     );
 
-    _hintTextStyle = TextStyle(
+    _boldGrayBodyTextStyle = TextStyle(
+      fontFamily: _fontName,
+      fontWeight: FontWeight.bold,
+      fontSize: _bodyTextSize,
+      color: AppColors.hintTextColor,
+    );
+
+    _grayBodyTextStyle = TextStyle(
       fontFamily: _fontName,
       fontSize: _bodyTextSize,
       color: AppColors.hintTextColor,
@@ -59,7 +75,9 @@ class TextStyles {
   TextStyle get h1TextStyle => _h1TextStyle;
   TextStyle get h2TextStyle => _h2TextStyle;
   TextStyle get largeBodyTextStyle => _largeBodyTextStyle;
+  TextStyle get boldBodyTextStyle => _boldBodyTextStyle;
   TextStyle get bodyTextStyle => _bodyTextStyle;
   TextStyle get smallBodyTextStyle => _smallBodyTextStyle;
-  TextStyle get hintTextStyle => _hintTextStyle;
+  TextStyle get grayTextStyle => _grayBodyTextStyle;
+  TextStyle get boldGrayTextStyle => _boldGrayBodyTextStyle;
 }

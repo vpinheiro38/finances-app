@@ -79,8 +79,9 @@ class BudgetSummaryViewImpl implements BudgetSummaryView  {
     showMaterialModalBottomSheet(
       context: _context,
       expand: false,
+      enableDrag: false,
       backgroundColor: AppColors.cardColor,
-      builder: (context) => TransactionCreation()
+      builder: (context) => TransactionCreation(_budget.id)
     );
   }
 

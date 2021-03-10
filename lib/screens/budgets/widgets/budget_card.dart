@@ -56,7 +56,7 @@ class BudgetCard extends StatelessWidget {
           decoration: InputDecoration(
               border: InputBorder.none,
               hintText: defaultTexts.newBudget,
-              hintStyle: textStyles.hintTextStyle
+              hintStyle: textStyles.grayTextStyle
           ),
         ),
       ),

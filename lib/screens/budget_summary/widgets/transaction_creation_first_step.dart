@@ -1,79 +1,63 @@
 import 'package:finances_app/constants/app_colors.dart';
+import 'package:finances_app/model/models/transaction.dart';
 import 'package:finances_app/provider/app_theme.dart';
 import 'package:finances_app/provider/default_texts.dart';
 import 'package:finances_app/provider/text_styles.dart';
+import 'package:finances_app/screens/budget_summary/widgets/transaction_creation_content.dart';
 import 'package:finances_app/screens/budget_summary/widgets/transaction_creation_second_step.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 enum TransactionType { inflow, outflow }
 
 class TransactionCreationFirstStep extends StatefulWidget {
   final VoidCallback _onCloseTransactionCreation;
+  final int _budgetId;
 
-  TransactionCreationFirstStep(this._onCloseTransactionCreation);
+  TransactionCreationFirstStep(this._budgetId, this._onCloseTransactionCreation);
 
   @override
-  State<StatefulWidget> createState() => _TransactionCreationFirstStepState(_onCloseTransactionCreation);
+  State<StatefulWidget> createState() => _TransactionCreationFirstStepState(_budgetId, _onCloseTransactionCreation);
 }
 
 class _TransactionCreationFirstStepState extends State<TransactionCreationFirstStep> {
   final VoidCallback _onCloseTransactionCreation;
+  final int _budgetId;
 
   TextStyles _textStyles;
   DefaultTexts _defaultTexts;
+  TransactionType _transactionType;
+  TextEditingController _textEditingController;
 
-  TransactionType _transactionType = TransactionType.outflow;
+  Transaction _transactionBeingCreated;
 
-  _TransactionCreationFirstStepState(this._onCloseTransactionCreation);
+  _TransactionCreationFirstStepState(this._budgetId, this._onCloseTransactionCreation);
+
+  @override
+  void initState() {
+    super.initState();
+
+    _transactionBeingCreated = Transaction(_budgetId, DateTime.now().millisecondsSinceEpoch, "Outros", -1, "");
+    _transactionType = TransactionType.outflow;
+    _textEditingController = TextEditingController(text: _formatCurrency(0));
+    _textStyles = Provider.of<AppTheme>(context, listen: false).textStyles;
+    _defaultTexts = Provider.of<DefaultTexts>(context, listen: false);
+  }
 
   @override
   Widget build(BuildContext context) {
-    _textStyles = Provider.of<AppTheme>(context, listen: false).textStyles;
-    _defaultTexts = Provider.of<DefaultTexts>(context, listen: false);
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(0, 10, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTransactionTypeQuestion(),
-                  _buildTransactionTypeSelection(),
-                  _buildButtonNext(context)
-                ],
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Row(
+    return TransactionCreationContent(
       children: [
-        IconButton(
-            icon: Icon(Icons.close, color: AppColors.textColor),
-            onPressed: _onCloseTransactionCreation,
-            padding: const EdgeInsets.fromLTRB(6, 0, 0, 0)
-        ),
-        _buildCreationTitle()
+        _buildTransactionTypeQuestion(),
+        _buildTransactionTypeSelection(),
+        _buildTransactionMoneyQuestion(),
+        _buildTransactionMoneyInput(),
+        _buildButtonNext(context)
       ],
-    );
-  }
-
-  Widget _buildCreationTitle() {
-    return Text(
-        _defaultTexts.createTransaction,
-        style: _textStyles.h1TextStyle
+      onPopButtonPressed: _onCloseTransactionCreation,
+      returnIcon: Icons.close,
     );
   }
 
@@ -112,10 +96,97 @@ class _TransactionCreationFirstStepState extends State<TransactionCreationFirstS
         onChanged: (TransactionType value) {
           setState(() {
             _transactionType = value;
+            _transactionBeingCreated.moneyAmount = (value == TransactionType.inflow) ? 1 : -1;
           });
         },
       ),
     );
+  }
+
+  Widget _buildTransactionMoneyQuestion() {
+    TextStyles textStyles = Provider.of<AppTheme>(context, listen: false).textStyles;
+    DefaultTexts defaultTexts = Provider.of<DefaultTexts>(context, listen: false);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+      child: Text(
+        defaultTexts.askTransactionMoney,
+        style: textStyles.h2TextStyle,
+      ),
+    );
+  }
+
+  Widget _buildTransactionMoneyInput() {
+    TextStyles textStyles = Provider.of<AppTheme>(context, listen: false).textStyles;
+    DefaultTexts defaultTexts = Provider.of<DefaultTexts>(context, listen: false);
+
+    return Row(
+      children: [
+        Text("${defaultTexts.currency} ", style: textStyles.largeBodyTextStyle),
+        Flexible(
+          child: TextField(
+            controller: _textEditingController,
+            onChanged: _onMoneyInputChanged,
+            keyboardType: TextInputType.number,
+            style: textStyles.largeBodyTextStyle,
+            decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: defaultTexts.newBudget,
+                hintStyle: textStyles.grayTextStyle
+            ),
+            inputFormatters: [
+              TextInputFormatter.withFunction(_formatMoneyInput)
+            ],
+
+          ),
+        )
+      ],
+    );
+  }
+
+  void _onMoneyInputChanged(String text) {
+    String moneyAmountText = text.replaceAll('.', '')
+        .replaceAll(',', '')
+        .replaceAll('_', '')
+        .replaceAll('-', '');
+
+    double moneyAmount = double.parse(moneyAmountText)/100;
+
+    setState(() {
+      _transactionBeingCreated.moneyAmount = moneyAmount;
+    });
+  }
+
+  TextEditingValue _formatMoneyInput(TextEditingValue oldValue, TextEditingValue newValue) {
+    String newText = newValue.text
+        .replaceAll('.', '')
+        .replaceAll(',', '')
+        .replaceAll('_', '')
+        .replaceAll('-', '');
+
+    String newTextCopy = newText;
+    int cursorPosition = newText.length;
+
+    if (newText.isNotEmpty) {
+      newTextCopy = _formatCurrency(double.parse(newText));
+      cursorPosition = newTextCopy.length;
+    }
+
+    return TextEditingValue(
+        text: newTextCopy,
+        selection: TextSelection.collapsed(offset: cursorPosition)
+    );
+  }
+
+  String _formatCurrency(num value) {
+    ArgumentError.checkNotNull(value, 'value');
+
+    value = value / 100;
+
+    return NumberFormat.currency(
+        customPattern: '###,###.##',
+        locale: 'pt-BR'
+    ).format(value);
   }
 
   Widget _buildButtonNext(BuildContext context) {
@@ -127,7 +198,7 @@ class _TransactionCreationFirstStepState extends State<TransactionCreationFirstS
           children: [
             Expanded(
               child: RaisedButton(
-                onPressed: () => onNextButtonPressed(context),
+                onPressed: () => _onNextButtonPressed(context),
                 child: Text(_defaultTexts.next),
               ),
             )
@@ -137,8 +208,8 @@ class _TransactionCreationFirstStepState extends State<TransactionCreationFirstS
     );
   }
 
-  void onNextButtonPressed(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => TransactionCreationSecondStep()));
+  void _onNextButtonPressed(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TransactionCreationSecondStep(_transactionBeingCreated)));
   }
 
 }
